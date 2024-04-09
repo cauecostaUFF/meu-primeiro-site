@@ -29,17 +29,64 @@
 <body>
     <!-- Head -->
     <h1>Vapor-liquid Equilibrium for a Binary System</h1>
-    Model: \(G^{exc} = nRT\beta x_Ax_B\)
+
+    <!-- Select the thermodynamic model -->
+    <p>Select your thermodynamic model: <select id="model">
+        <option value="0">Margules two suffix</option>
+        <option value="1">Margules three suffix</option>
+        <option value="2">NRTL</option>
+    </select></p>
+    <!-- Model selected-->
+    <p id = "textmodel">Model: \(G^{exc} = nRT\beta x_Ax_B\)</p>
     <!-- Inputs -->
-    <p>\(P^{sat}_A\)= <input type="number" name="PsatA" id="PsatA" value="1.0" step="0.1" min="0.1"> bar, 
-        \(P^{sat}_B\) = <input type="number" name="PsatB" id="PsatB" value="0.5" step="0.1" min="0.1"> bar,
-        \(\beta\) = <input type="number" name="beta" id="beta" value="0.0" step="0.1"></p>
+    
+    <p id="param">Parameters: \(\beta\) = <input type="number" name="beta" id="beta" value="0.0" step="0.1"></p>
+    <p id="psats">\(P^{sat}_A\)= <input type="number" name="PsatA" id="PsatA" value="1.0" step="0.1" min="0.1"> bar, 
+        \(P^{sat}_B\) = <input type="number" name="PsatB" id="PsatB" value="0.5" step="0.1" min="0.1"> bar</p>
     <!-- Graph -->
     <div id="myPlot"></div>
     
     
     <!-- Script -->
     <script>
+        let model = document.querySelector('select#model')
+        model.addEventListener("click",writemodel)
+        writemodel()
+        
+        function writemodel(){
+            let textmodel = document.querySelector('p#textmodel')
+
+            if (model.value==0){
+                textmodel.innerHTML = "Model: \\(G^{exc} = nRT\\beta x_Ax_B\\)"
+            } else if (model.value==1) {
+                textmodel.innerHTML = "Model: \\(G^{exc} = nRTx_Ax_B\(\\beta_{B,A} x_A + \\beta_{A,B} x_B\)\\)"
+            } else if (model.value == 2) {
+                textmodel.innerHTML = "Model: \\(G^{exc} = nRT \\left( \\displaystyle \\frac{\\tau_{B,A}\\exp\\left(-\\alpha\\tau_{B,A}\\right)}{x_A + x_B\\exp\\left(-\\alpha\\tau_{B,A}\\right)} +  \\frac{\\tau_{A,B}\\exp\\left(-\\alpha\\tau_{A,B}\\right)}{x_B + x_A\\exp\\left(-\\alpha\\tau_{A,B}\\right)} \\right)x_Ax_B\\)"
+            }
+            MathJax.Hub.Queue(["Typeset",MathJax.Hub,"textmodel"]); 
+            // Adjust the parameters
+            if (model.value==0){
+                document.querySelector("p#param").innerHTML = `Parameters: \\(\\beta\\) = <input type="number" name="beta" id="beta" value="0.0" step="0.1">`
+                let inputBeta = document.querySelector("input#beta");
+                inputBeta.addEventListener("input",exec);
+            } else if (model.value==1){
+                document.querySelector("p#param").innerHTML = `Parameters: \\(\\beta_{A,B}\\) = <input type="number" id="betaAB" value="0.0" step="0.1">, \\(\\beta_{B,A}\\) = <input type="number" id="betaBA" value="0.0" step="0.1">`
+                let inputBetaAB = document.querySelector("input#betaAB");
+                inputBetaAB.addEventListener("input",exec);
+                let inputBetaBA = document.querySelector("input#betaBA");
+                inputBetaBA.addEventListener("input",exec);
+            } else if (model.value==2){
+                document.querySelector("p#param").innerHTML = `Parameters: \\(\\alpha\\) = <input type="number" id="alpha" value="0.30" step="0.01" style="width: 60px">, \\(\\tau_{A,B}\\) = <input type="number" id="tauAB" value="0.0" step="0.1">, \\(\\tau_{B,A}\\) = <input type="number" id="tauBA" value="0.0" step="0.1">`
+                let inputAlpha = document.querySelector("input#alpha");
+                inputAlpha.addEventListener("input",exec);
+                let inputTauAB = document.querySelector("input#tauAB");
+                inputTauAB.addEventListener("input",exec);
+                let inputTauBA = document.querySelector("input#tauBA");
+                inputTauBA.addEventListener("input",exec);
+            }
+            MathJax.Hub.Queue(["Typeset",MathJax.Hub,"param"]); 
+            exec()
+        }
         // Linspace function
         function linspace(startValue, stopValue, cardinality) {
             var arr = [];
@@ -55,12 +102,11 @@
         // Variables
         let inputA = document.querySelector("input#PsatA");
         let inputB = document.querySelector("input#PsatB");
-        let inputBeta = document.querySelector("input#beta");
-
         // Add events
         inputA.addEventListener("input",exec);
         inputB.addEventListener("input",exec);
-        inputBeta.addEventListener("input",exec);
+
+  
 
         // Program
         function exec(){
@@ -68,11 +114,27 @@
             let Psat = [Number(document.getElementById("PsatA").value),Number(document.getElementById("PsatB").value)]
             let P = [];
             let y = [];
-            let beta = Number(document.getElementById("beta").value);
+            
             for(let i = 0; i<x.length;i++){
                 let gamma = []
-                gamma[0] = Math.exp(beta*(1-x[i])**2);
-                gamma[1] = Math.exp(beta*(x[i])**2);
+                if (model.value==0){
+                    let beta = Number(document.getElementById("beta").value);
+                    gamma[0] = Math.exp(beta*(1-x[i])**2);
+                    gamma[1] = Math.exp(beta*(x[i])**2);
+                } else if (model.value==1){
+                    let betaAB = Number(document.getElementById("betaAB").value);
+                    let betaBA = Number(document.getElementById("betaBA").value);
+                    gamma[0] = Math.exp((betaAB+2*(betaBA-betaAB)*x[i])*(1-x[i])**2);
+                    gamma[1] = Math.exp((betaBA+2*(betaAB-betaBA)*(1-x[i]))*x[i]**2);
+                } else if (model.value == 2){
+                    let alpha = Number(document.getElementById("alpha").value);
+                    let tauAB = Number(document.getElementById("tauAB").value);
+                    let tauBA = Number(document.getElementById("tauBA").value);
+                    GAB = Math.exp(-alpha*tauAB);
+                    GBA = Math.exp(-alpha*tauBA);
+                    gamma[0] = Math.exp((1-x[i])**2*(tauBA*(GBA/(x[i]+ (1-x[i])*GBA)**2 + tauAB*GAB/((1-x[i]) + x[i]*GAB)**2)));
+                    gamma[1] = Math.exp(x[i]**2*(tauAB*(GAB/((1-x[i])+ x[i]*GAB)**2 + tauBA*GBA/(x[i] + (1-x[i])*GBA)**2)));
+                }
                 P[i] = x[i]*gamma[0]*Psat[0] + (1.0-x[i])*gamma[1]*Psat[1];
                 y[i] = x[i]*gamma[0]*Psat[0]/P[i];
             }
