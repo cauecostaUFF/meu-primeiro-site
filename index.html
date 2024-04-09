@@ -22,6 +22,16 @@
             font: bold 28px Arial;
             text-align: center;
         }
+        p#param{
+            font: normal 18px Arial
+        }
+        p#psats{
+            text-align: center;
+            font: normal 18px Arial
+        }
+        select{
+            font: normal 16px Arial;
+        }
     </style>
     <script type="text/javascript" async src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG"></script>
     <script src="https://cdn.plot.ly/plotly-2.30.0.min.js" charset="utf-8"></script>
@@ -132,8 +142,8 @@
                     let tauBA = Number(document.getElementById("tauBA").value);
                     GAB = Math.exp(-alpha*tauAB);
                     GBA = Math.exp(-alpha*tauBA);
-                    gamma[0] = Math.exp((1-x[i])**2*(tauBA*(GBA/(x[i]+ (1-x[i])*GBA)**2 + tauAB*GAB/((1-x[i]) + x[i]*GAB)**2)));
-                    gamma[1] = Math.exp(x[i]**2*(tauAB*(GAB/((1-x[i])+ x[i]*GAB)**2 + tauBA*GBA/(x[i] + (1-x[i])*GBA)**2)));
+                    gamma[0] = Math.exp((1-x[i])**2*(tauBA*(GBA/(x[i]+ (1-x[i])*GBA))**2 + tauAB*GAB/((1-x[i]) + x[i]*GAB)**2));
+                    gamma[1] = Math.exp(x[i]**2*(tauAB*(GAB/((1-x[i])+ x[i]*GAB))**2 + tauBA*GBA/(x[i] + (1-x[i])*GBA)**2));
                 }
                 P[i] = x[i]*gamma[0]*Psat[0] + (1.0-x[i])*gamma[1]*Psat[1];
                 y[i] = x[i]*gamma[0]*Psat[0]/P[i];
