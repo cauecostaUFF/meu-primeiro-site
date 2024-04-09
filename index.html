@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,24 +11,36 @@
         }
         body{
             font: normal 18px Arial;
+            text-align: center;
+        }
+        div#myPlot{
+            width:100%;
+            max-width:700px;
+            margin: auto
         }
         h1{
-            font: normal 22px Arial;
+            font: bold 28px Arial;
+            text-align: center;
         }
     </style>
-    <script id="MathJax-script" async
-        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
-    </script>
+    <script type="text/javascript" async src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_SVG"></script>
     <script src="https://cdn.plot.ly/plotly-2.30.0.min.js" charset="utf-8"></script>
 </head>
 <body>
-    <h1>Vapor-liquid Diagram</h1>
+    <!-- Head -->
+    <h1>Vapor-liquid Equilibrium for a Binary System</h1>
+    Model: \(G^{exc} = nRT\beta x_Ax_B\)
+    <!-- Inputs -->
     <p>\(P^{sat}_A\)= <input type="number" name="PsatA" id="PsatA" value="1.0" step="0.1" min="0.1"> bar, 
         \(P^{sat}_B\) = <input type="number" name="PsatB" id="PsatB" value="0.5" step="0.1" min="0.1"> bar,
         \(\beta\) = <input type="number" name="beta" id="beta" value="0.0" step="0.1"></p>
-    <!--input type="button" value="Gráfico" onclick="calcular()"-->
-    <div id="myPlot" style="width:100%;max-width:700px"></div>
+    <!-- Graph -->
+    <div id="myPlot"></div>
+    
+    
+    <!-- Script -->
     <script>
+        // Linspace function
         function linspace(startValue, stopValue, cardinality) {
             var arr = [];
             var step = (stopValue - startValue) / (cardinality - 1);
@@ -37,19 +49,23 @@
             }
             return arr;
         }
-        
-        calcular()
+        // Create a graph
+        exec()
+
+        // Variables
         let inputA = document.querySelector("input#PsatA");
         let inputB = document.querySelector("input#PsatB");
         let inputBeta = document.querySelector("input#beta");
-        inputA.addEventListener("input",calcular);
-        inputB.addEventListener("input",calcular);
-        inputBeta.addEventListener("input",calcular);
-        function calcular(){
+
+        // Add events
+        inputA.addEventListener("input",exec);
+        inputB.addEventListener("input",exec);
+        inputBeta.addEventListener("input",exec);
+
+        // Program
+        function exec(){
             let x = linspace(0,1,101);
             let Psat = [Number(document.getElementById("PsatA").value),Number(document.getElementById("PsatB").value)]
-            //let P = x*Psat[0] + (1.0-x)*Psat[1];
-            //let y = x*Psat[0]/P;
             let P = [];
             let y = [];
             let beta = Number(document.getElementById("beta").value);
@@ -68,13 +84,11 @@
             
             var layout = {
                 title: "Phase Diagram",
-                xaxis: {range: [0,1],title: 'x_A, y_A', showline: true},
+                xaxis: {range: [0,1],title: '$x_A, y_A$', showline: true},
                 yaxis: {range: [Math.min(P),Math.max(P)], title: 'Pressure (bar)'},
                 showlegend: false,
-                
             };
-            
-        
+                    
             Plotly.newPlot("myPlot", data, layout);
         }
       </script>
