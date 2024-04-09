@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phase Diagram</title>
+    <style>
+        input{
+            width: 50px;
+            font: normal 18px Arial
+        }
+        body{
+            font: normal 18px Arial;
+        }
+        h1{
+            font: normal 22px Arial;
+        }
+    </style>
+    <script id="MathJax-script" async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+    </script>
+    <script src="https://cdn.plot.ly/plotly-2.30.0.min.js" charset="utf-8"></script>
+</head>
+<body>
+    <h1>Vapor-liquid Diagram</h1>
+    <p>\(P^{sat}_A\)= <input type="number" name="PsatA" id="PsatA" value="1.0" step="0.1" min="0.1"> bar, 
+        \(P^{sat}_B\) = <input type="number" name="PsatB" id="PsatB" value="0.5" step="0.1" min="0.1"> bar,
+        \(\beta\) = <input type="number" name="beta" id="beta" value="0.0" step="0.1"></p>
+    <!--input type="button" value="Gráfico" onclick="calcular()"-->
+    <div id="myPlot" style="width:100%;max-width:700px"></div>
+    <script>
+        function linspace(startValue, stopValue, cardinality) {
+            var arr = [];
+            var step = (stopValue - startValue) / (cardinality - 1);
+            for (var i = 0; i < cardinality; i++) {
+                arr.push(startValue + (step * i));
+            }
+            return arr;
+        }
+        
+        calcular()
+        let inputA = document.querySelector("input#PsatA");
+        let inputB = document.querySelector("input#PsatB");
+        let inputBeta = document.querySelector("input#beta");
+        inputA.addEventListener("input",calcular);
+        inputB.addEventListener("input",calcular);
+        inputBeta.addEventListener("input",calcular);
+        function calcular(){
+            let x = linspace(0,1,101);
+            let Psat = [Number(document.getElementById("PsatA").value),Number(document.getElementById("PsatB").value)]
+            //let P = x*Psat[0] + (1.0-x)*Psat[1];
+            //let y = x*Psat[0]/P;
+            let P = [];
+            let y = [];
+            let beta = Number(document.getElementById("beta").value);
+            for(let i = 0; i<x.length;i++){
+                let gamma = []
+                gamma[0] = Math.exp(beta*(1-x[i])**2);
+                gamma[1] = Math.exp(beta*(x[i])**2);
+                P[i] = x[i]*gamma[0]*Psat[0] + (1.0-x[i])*gamma[1]*Psat[1];
+                y[i] = x[i]*gamma[0]*Psat[0]/P[i];
+            }
+
+            var data = [
+                {x: x, y: P, mode:"lines", name: "liquid"},
+                {x: y, y: P, mode:"lines", name: "vapor"}
+            ];
+            
+            var layout = {
+                title: "Phase Diagram",
+                xaxis: {range: [0,1],title: 'x_A, y_A', showline: true},
+                yaxis: {range: [Math.min(P),Math.max(P)], title: 'Pressure (bar)'},
+                showlegend: false,
+                
+            };
+            
+        
+            Plotly.newPlot("myPlot", data, layout);
+        }
+      </script>
+</body>
+</html> 
